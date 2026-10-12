@@ -1,6 +1,6 @@
 ---
 name: reviewable-commits
-description: Split work into reviewable, functional commits and commit them one chunk at a time with the user's approval. Use whenever the user is ready to start committing code.
+description: Split work into reviewable, functional commits and commit them one at a time, stopping after each staged chunk until the user has reviewed and approved it. Use whenever the user is ready to start committing code.
 when_to_use: The user signals that the work is ready to be committed, for example "let's commit", "commit this", "ready to commit", "time to commit", "commit the changes", "make the commits", "split this into commits" or "prepare the commits for the PR". Also use it when the user asks for commit messages for pending changes. Load it before running any git add or git commit for the user's work.
 argument-hint: "[jira-key]"
 ---
@@ -12,32 +12,49 @@ one at a time, and never commit anything the user has not seen and approved.
 
 ## Principles
 
-- **One idea per commit.** A refactor, a behaviour change, a bug fix, a docs-only change and a
+- **One idea per commit.** A refactor, a behavior change, a bug fix, a docs-only change and a
   whitespace-only change are separate commits.
 - **Every commit stands on its own.** It builds, its tests pass, and it carries its own tests and
   docs, so the history can be bisected.
-- **Refactors before the changes that need them**, so the behaviour change stays small.
-- **The user approves every commit.** Nothing is committed, pushed or rewritten without it.
+- **Refactors before the changes that need them**, so the behavior change stays small.
+- **The user reviews and approves every commit, one at a time.** Nothing is committed, pushed or
+  rewritten without it. Agreeing to the plan, choosing how to split, or saying "commit" never
+  approves a particular commit. Only a "yes" to a staged chunk the user has just been shown does.
 
 ## Procedure
 
 ### 1. Propose the chunks
 
 Read the full diff (`git status`, `git diff`, untracked files) and propose an ordered list of
-commits. For each one give a headline and a short list of what it contains. If a commit needs an
-interim state that never existed in the working tree (for example a behaviour that a later commit
-replaces), say so.
+chunks. For each one give:
 
-Wait for the user to agree with the plan or change it before touching anything.
+- a headline and a short list of what it contains;
+- a ballpark **T-shirt size** for the review effort: XS (a few lines), S (a small, focused change),
+  M (a few files), L (many files or a substantial change), XL (a large part of the work). This is
+  a rough guide, not a line count;
+- its **dependencies**: the earlier chunks it builds on, or "independent";
+- a note when it needs an interim state that never existed in the working tree, for example a
+  behavior that a later chunk replaces.
 
-#### How to cut the commits
+End the list with a **misc chunk** for leftovers that don't fit well in any functional chunk, such
+as stray tweaks or work in progress. Don't force them into a functional chunk. The user may leave
+the misc chunk uncommitted and carry on working on it, so no other chunk may depend on it.
 
-Order the commits so each one is easy to accept on its own, and the risky change is as small as
-possible when it lands:
+Then ask the user explicitly whether the order is reasonable or should change, and wait. Their
+agreement approves the plan only, not committing any chunk.
 
-1. **Mechanical changes:** whitespace, formatting, renames. These are reviewed by skimming. Their
-   commit message states that the commit is mechanical only, with no functional changes, for
-   example a final bullet `- Mechanical change only: no functional changes`.
+#### How to cut and order the chunks
+
+Order the chunks so each one is easy to accept on its own, and the risky change is as small as
+possible when it lands. A dependent chunk comes after the chunks it builds on. An independent chunk
+can go anywhere, so place it where it reads best.
+
+1. **Mechanical changes:** whitespace, formatting, renames, moves. These are reviewed by skimming,
+   so get them out of the way first when they are independent and not tied to one topic. A
+   mechanical change that belongs to a topic goes with that topic's chunks instead: if chunks 4–6
+   deal with topic X, a rename related to X sits alongside them, not first. Either way, the commit
+   message states that the commit is mechanical only, with no functional changes, for example a
+   final bullet `- Mechanical change only: no functional changes`.
 2. **Housekeeping:** `.gitignore`, build and tooling settings.
 3. **Independent corrections:** fixes or doc corrections that would be right even without this work.
 4. **Preparatory refactors:** reshape the code the change needs, with no behavior change.
@@ -62,40 +79,69 @@ second issue, still under the branch's key).
 
 ### 2. Take a safety copy (when splitting uncommitted work)
 
-Before reshaping the working tree, record the final state on a local backup branch without touching
-the working tree or the real index:
+Skip this when the work goes into a single commit as it stands. Otherwise, before reshaping the
+working tree, record the final state on a local backup branch without touching the working tree or
+the real index. Run it from the repo root, and replace `<branch>` with the current branch name.
+
+The temporary index must be a path that doesn't exist yet: git rejects an empty file, such as one
+created by `mktemp`, as a corrupt index.
+
+Bash:
 
 ```bash
-export GIT_INDEX_FILE="$(mktemp)"
+export GIT_INDEX_FILE="$(git rev-parse --absolute-git-dir)/backup.index"
 git add -A
 tree=$(git write-tree)
 commit=$(git commit-tree "$tree" -p HEAD -m "backup: final state")
 git update-ref refs/heads/backup/<branch>-final "$commit"
-unset GIT_INDEX_FILE
+rm "$GIT_INDEX_FILE"; unset GIT_INDEX_FILE
 ```
+
+PowerShell:
+
+```powershell
+$env:GIT_INDEX_FILE = Join-Path (git rev-parse --absolute-git-dir) "backup.index"
+git add -A
+$tree = git write-tree
+$commit = git commit-tree $tree -p HEAD -m "backup: final state"
+git update-ref refs/heads/backup/<branch>-final $commit
+Remove-Item $env:GIT_INDEX_FILE; Remove-Item Env:GIT_INDEX_FILE
+```
+
+Check the result with `git show --stat backup/<branch>-final` before going on.
 
 ### 3. Build each chunk
 
-For each commit in order:
+For each commit in order, and **one commit per turn**. Never script, batch or loop several commits,
+even when every intermediate state has been verified.
 
-1. Bring the working tree to that commit's state. Take final content from the backup branch
-   file by file (`git show backup/…:path`), and edit only the hunks that belong to this commit when
-   a file spans several commits.
+The user may stage and commit some chunks themselves, often large ones, to get them out of the way
+early. So before each chunk, check `git status` and `git log` and adjust the remaining plan to what
+is actually left, instead of assuming the earlier plan still holds. Then:
+
+1. Bring the working tree to that commit's state. When there is a backup branch, take final content
+   from it file by file (`git show backup/…:path`), and edit only the hunks that belong to this
+   commit when a file spans several commits.
 2. Build and run the tests. A failing chunk is fixed before it is shown.
 3. Stage exactly that commit's changes, and nothing else.
 4. Show the user:
    - the staged files (`git diff --cached --stat`);
    - the proposed commit message;
    - the build and test results.
-5. **Stop and wait for approval.** Apply change requests, re-stage and show the chunk again.
+5. **Stop and end your turn.** Wait for the user's explicit approval of this chunk. Apply change
+   requests, re-stage and show the chunk again.
 6. After approval, commit and move to the next chunk.
+
+When only the misc chunk is left, ask whether to commit it or leave it uncommitted to keep working
+on.
 
 ### 4. Verify the result
 
-- `git diff backup/<branch>-final` is empty, or every difference is a change the user asked for
-  during review. Report which.
+- When there is a backup branch: `git diff backup/<branch>-final` is empty, or every difference is a
+  change the user asked for during review. Report which. A misc chunk left uncommitted is still in
+  the working tree, so compare the working tree, not only `HEAD`.
 - Run the repo's format or lint check if it has one.
-- Delete the backup branch once the user is satisfied.
+- Delete the backup branch, if any, once the user is satisfied.
 
 ## Commit message format
 
