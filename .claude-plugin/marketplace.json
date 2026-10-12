@@ -1,0 +1,14 @@
+{
+  "name": "claude-skills",
+  "description": "Generally useful Claude Code skills, grouped into plugins",
+  "owner": {
+    "name": "Richard Flamsholt"
+  },
+  "plugins": [
+    {
+      "name": "dev-workflow",
+      "source": "./plugins/dev-workflow",
+      "description": "Development workflow skills: commits, reviews, handovers"
+    }
+  ]
+}
