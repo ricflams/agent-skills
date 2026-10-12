@@ -14,8 +14,9 @@ one at a time, and never commit anything the user has not seen and approved.
 
 - **One idea per commit.** A refactor, a behavior change, a bug fix, a docs-only change and a
   whitespace-only change are separate commits.
-- **Every commit stands on its own.** It builds, its tests pass, and it carries its own tests and
-  docs, so the history can be bisected.
+- **Every commit stands on its own as a reviewable unit**, and carries its own tests and docs. A
+  commit doesn't have to build or pass the tests: grouping by functionality comes first. Don't
+  move changes between chunks or invent interim states just to keep every commit buildable.
 - **Refactors before the changes that need them**, so the behavior change stays small.
 - **The user reviews and approves every commit, one at a time.** Nothing is committed, pushed or
   rewritten without it. Agreeing to the plan, choosing how to split, or saying "commit" never
@@ -70,7 +71,7 @@ Cut between two changes when any of these is true:
 - One is mechanical and the other needs careful reading.
 - They belong to different issues or stories.
 
-Keep changes together when one is incomplete or breaks the build without the other. Tests and docs
+Keep changes together when one makes no sense without the other. Tests and docs
 travel with the change they cover.
 
 *Example:* tabs → `.gitignore` → UTF-8 docs fix → extract `PartitionPaths` → regex on the old
@@ -122,12 +123,13 @@ is actually left, instead of assuming the earlier plan still holds. Then:
 1. Bring the working tree to that commit's state. When there is a backup branch, take final content
    from it file by file (`git show backup/…:path`), and edit only the hunks that belong to this
    commit when a file spans several commits.
-2. Build and run the tests. A failing chunk is fixed before it is shown.
+2. Build and run the tests when that's quick. A chunk that doesn't build or pass is still fine to
+   commit; report it rather than fixing it with changes from another chunk.
 3. Stage exactly that commit's changes, and nothing else.
 4. Show the user:
    - the staged files (`git diff --cached --stat`);
    - the proposed commit message;
-   - the build and test results.
+   - the build and test results, if they were run.
 5. **Stop and end your turn.** Wait for the user's explicit approval of this chunk. Apply change
    requests, re-stage and show the chunk again.
 6. After approval, commit and move to the next chunk.
