@@ -84,13 +84,19 @@ Skip this when the work goes into a single commit as it stands. Otherwise, befor
 working tree, record the final state on a local backup branch without touching the working tree or
 the real index. Run it from the repo root, and replace `<branch>` with the current branch name.
 
-The temporary index must be a path that doesn't exist yet: git rejects an empty file, such as one
-created by `mktemp`, as a corrupt index.
+Start the temporary index from a copy of the real index, not an empty or not-yet-existing path:
+`git add -A` against an empty index has no stat-cache entries to compare against, so it re-reads and
+re-hashes every file in the working tree, not just the changed ones. With `core.autocrlf=true` that
+re-normalizes any file whose stored blob has different line endings than the filter would currently
+produce, pulling unrelated files (for example a `.sln`, or YAML checked in with real CRLF) into the
+backup commit.
 
 Bash:
 
 ```bash
-export GIT_INDEX_FILE="$(git rev-parse --absolute-git-dir)/backup.index"
+gitdir="$(git rev-parse --absolute-git-dir)"
+cp "$gitdir/index" "$gitdir/backup.index"
+export GIT_INDEX_FILE="$gitdir/backup.index"
 git add -A
 tree=$(git write-tree)
 commit=$(git commit-tree "$tree" -p HEAD -m "backup: final state")
@@ -101,7 +107,9 @@ rm "$GIT_INDEX_FILE"; unset GIT_INDEX_FILE
 PowerShell:
 
 ```powershell
-$env:GIT_INDEX_FILE = Join-Path (git rev-parse --absolute-git-dir) "backup.index"
+$gitdir = git rev-parse --absolute-git-dir
+Copy-Item (Join-Path $gitdir "index") (Join-Path $gitdir "backup.index")
+$env:GIT_INDEX_FILE = Join-Path $gitdir "backup.index"
 git add -A
 $tree = git write-tree
 $commit = git commit-tree $tree -p HEAD -m "backup: final state"
@@ -148,7 +156,7 @@ on.
 ## Commit message format
 
 ```
-<KEY>: <headline>
+<KEY>: [<Type>: ]<headline>
 
 - <point>
 - <point>
@@ -166,6 +174,23 @@ Co-Authored-By: <model name> <noreply@anthropic.com>
   middle of the name.
 - **One key for the whole branch:** every commit on the branch gets the same prefix, or none, even a
   commit that implements another issue.
+- **Type marker:** when a commit is entirely one specific kind of change, start the headline with
+  its type, capitalized, after the key: `A11Y-12611: Fix: Offer pdftitle with string operators again`.
+  The types are those of [Conventional Commits](https://www.conventionalcommits.org), which is the
+  intention behind them, but only the subset that names a specific kind of change:
+  - `Fix`: corrects existing behavior, not the behavior the branch is adding
+  - `Refactor`: restructures code, including renames, with no change in behavior
+  - `Style`: formatting and whitespace only
+  - `Docs`: documentation only
+  - `Test`: tests only
+  - `Chore`, `Build`, `CI`: housekeeping, build or pipeline only
+  - `Performance`: makes something faster with no other change in behavior (the convention's `perf`)
+
+  There is no `Feat`: a commit without a marker is the branch's own work, which keeps the marker
+  meaningful. The marker says what kind of change the commit is, and so what to check, even when it
+  serves the feature: a preparatory refactor is still `Refactor`, and a commit of only the feature's
+  design docs is still `Docs`. Use one marker at most; a commit that needs two should be split.
+  `Refactor` and `Style` commits also end with the "Mechanical change only" bullet below.
 - **Headline:** imperative, specific, about 72 characters at most. It says what the commit achieves,
   not which files it touches.
 - **Body:** a few itemized points, short and to the point: what changed and why. Not a narrative,
