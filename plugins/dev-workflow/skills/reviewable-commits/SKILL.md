@@ -200,6 +200,19 @@ Co-Authored-By: <model name> <noreply@anthropic.com>
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never copy a model name from an earlier
   commit or from this file. If the environment gives an exact attribution line, use that line.
 
+## Pull request title
+
+A PR's title carries the same key as the branch's commits: `<KEY>: <headline>`, for example
+`A11Y-12611: Add the PdfText rule`, never a title GitHub derives from the branch name, such as
+"A11y 12611 add pdftext rule". With no key, the headline stands alone.
+
+- The headline says what the whole PR achieves, in the style of a commit headline. It has no type
+  marker, unless every commit in the PR has the same one.
+- When opening a PR, always pass the title explicitly (`gh pr create --title "<KEY>: …"`): for a PR
+  with several commits, GitHub otherwise derives it from the branch name.
+- If an existing PR's title doesn't follow this, propose the corrected title, and change it
+  (`gh pr edit <number> --title …`) only after the user agrees, since it is visible to others.
+
 ## Rules
 
 - Never push, force-push, or reword or rebase pushed commits unless the user explicitly asks. If a
