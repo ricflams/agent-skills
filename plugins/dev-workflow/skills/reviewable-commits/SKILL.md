@@ -191,8 +191,12 @@ Co-Authored-By: <model name> <noreply@anthropic.com>
   serves the feature: a preparatory refactor is still `Refactor`, and a commit of only the feature's
   design docs is still `Docs`. Use one marker at most; a commit that needs two should be split.
   `Refactor` and `Style` commits also end with the "Mechanical change only" bullet below.
-- **Headline:** imperative, specific, about 72 characters at most. It says what the commit achieves,
-  not which files it touches.
+- **Headline:** imperative, specific, and **72 characters at most for the whole first line**,
+  counting the key and the type marker. This is a hard limit: GitHub cuts a longer subject off with
+  "…" and moves the rest into the description, and does the same to a PR title made from the commit.
+  Count the length (for example `${#headline}` in Bash) rather than estimating it, and
+  shorten the wording or move detail into the body when it's over. The headline says what the commit
+  achieves, not which files it touches.
 - **Body:** a few itemized points, short and to the point: what changed and why. Not a narrative,
   and not a file list. A mechanical commit says so explicitly: "Mechanical change only: no
   functional changes".
@@ -208,6 +212,7 @@ A PR's title carries the same key as the branch's commits: `<KEY>: <headline>`, 
 
 - The headline says what the whole PR achieves, in the style of a commit headline. It has no type
   marker, unless every commit in the PR has the same one.
+- The whole title, key included, is 72 characters at most, as for a commit headline. Count it.
 - When opening a PR, always pass the title explicitly (`gh pr create --title "<KEY>: …"`): for a PR
   with several commits, GitHub otherwise derives it from the branch name.
 - If an existing PR's title doesn't follow this, propose the corrected title, and change it
