@@ -1,7 +1,8 @@
-# claude-skills
+# agent-skills
 
-Generally useful [Claude Code](https://code.claude.com/docs) skills, published as a plugin
-marketplace.
+Generally useful agent skills in the open [Agent Skills](https://agentskills.io) format. They are
+published as a [Claude Code](https://code.claude.com/docs) plugin marketplace, and work with any
+agent that reads `SKILL.md` files.
 
 ## Plugins and skills
 
@@ -23,22 +24,33 @@ plugins/<plugin>/skills/<skill>/SKILL.md
 Start new skills in an existing plugin. Split a plugin when a clear group of skills emerges, so people
 can install only what they need. Add the new plugin to `marketplace.json`.
 
+Keep skills portable: put everything that decides when a skill triggers in `description`, since other
+agents ignore Claude Code's extra frontmatter fields such as `when_to_use`.
+
 ## Install
 
-From a clone:
+### Claude Code
 
 ```powershell
-claude plugin marketplace add C:\my\code\claude-skills
-claude plugin install dev-workflow@claude-skills
+claude plugin marketplace add ricflams/agent-skills
+claude plugin install dev-workflow@ricflams
 ```
 
-Once the repo is on GitHub: `claude plugin marketplace add <owner>/claude-skills`.
+From a clone, pass its path instead: `claude plugin marketplace add .\agent-skills`.
+
+### Other agents
+
+Codex, Gemini CLI, Copilot, Cursor and other agents that support Agent Skills can use a skill
+directly: copy its folder, for example `plugins/dev-workflow/skills/reviewable-commits`, into the
+agent's skills directory. See the agent's documentation for where that is.
 
 ## Develop
 
+From the repo root:
+
 ```powershell
-claude plugin validate C:\my\code\claude-skills
-claude --plugin-dir C:\my\code\claude-skills\plugins\dev-workflow
+claude plugin validate .
+claude --plugin-dir .\plugins\dev-workflow
 ```
 
 `--plugin-dir` loads a plugin for one session without installing it. Run `/reload-plugins` after

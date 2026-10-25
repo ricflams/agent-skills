@@ -1,6 +1,6 @@
 {
-  "name": "claude-skills",
-  "description": "Generally useful Claude Code skills, grouped into plugins",
+  "name": "ricflams",
+  "description": "Generally useful agent skills, grouped into plugins",
   "owner": {
     "name": "Richard Flamsholt"
   },

@@ -1,7 +1,6 @@
 ---
 name: reviewable-commits
-description: Split work into reviewable, functional commits and commit them one at a time, stopping after each staged chunk until the user has reviewed and approved it. Use whenever the user is ready to start committing code.
-when_to_use: The user signals that the work is ready to be committed, for example "let's commit", "commit this", "ready to commit", "time to commit", "commit the changes", "make the commits", "split this into commits" or "prepare the commits for the PR". Also use it when the user asks for commit messages for pending changes. Load it before running any git add or git commit for the user's work.
+description: Split work into reviewable, functional commits and commit them one at a time, stopping after each staged chunk until the user has reviewed and approved it. Use whenever the user signals that the work is ready to be committed, for example "let's commit", "commit this", "ready to commit", "time to commit", "commit the changes", "make the commits", "split this into commits" or "prepare the commits for the PR". Also use it when the user asks for commit messages for pending changes. Load it before running any git add or git commit for the user's work.
 argument-hint: "[jira-key]"
 ---
 
