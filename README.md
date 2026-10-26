@@ -4,25 +4,25 @@ Generally useful agent skills in the open [Agent Skills](https://agentskills.io)
 published as a [Claude Code](https://code.claude.com/docs) plugin marketplace, and work with any
 agent that reads `SKILL.md` files.
 
-## Plugins and skills
+## Skills
 
-| Plugin         | Skill                | What it does                                                        |
-|----------------|----------------------|---------------------------------------------------------------------|
-| `dev-workflow` | `reviewable-commits` | Splits work into functional commits, each reviewed and approved before it is committed |
+| Skill                | What it does                                                                         |
+|----------------------|--------------------------------------------------------------------------------------|
+| `reviewable-commits` | Splits work into functional commits, each reviewed and approved before it is committed |
 
-Plugin skills are namespaced: run one as `/dev-workflow:reviewable-commits`, or let Claude load it
-when a request matches its description.
+All skills ship in one plugin, `ricflams-skills`. Plugin skills are namespaced: run one as
+`/ricflams-skills:reviewable-commits`, or let Claude load it when a request matches its description.
 
 ## Layout
 
 ```
-.claude-plugin/marketplace.json        the marketplace: lists the plugins in this repo
-plugins/<plugin>/.claude-plugin/plugin.json
-plugins/<plugin>/skills/<skill>/SKILL.md
+.claude-plugin/marketplace.json        the marketplace: lists the one plugin, rooted at the repo
+.claude-plugin/plugin.json             the plugin
+skills/<skill>/SKILL.md
 ```
 
-Start new skills in an existing plugin. Split a plugin when a clear group of skills emerges, so people
-can install only what they need. Add the new plugin to `marketplace.json`.
+The plugin picks up every folder under `skills/`. Keep one plugin, so skill names never change. To keep
+draft skills out of it, list the shipped skills explicitly in `plugin.json`'s `skills` array.
 
 Keep skills portable: put everything that decides when a skill triggers in `description`, since other
 agents ignore Claude Code's extra frontmatter fields such as `when_to_use`.
@@ -33,7 +33,7 @@ agents ignore Claude Code's extra frontmatter fields such as `when_to_use`.
 
 ```powershell
 claude plugin marketplace add ricflams/agent-skills
-claude plugin install dev-workflow@ricflams
+claude plugin install ricflams-skills@ricflams
 ```
 
 From a clone, pass its path instead: `claude plugin marketplace add .\agent-skills`.
@@ -41,7 +41,7 @@ From a clone, pass its path instead: `claude plugin marketplace add .\agent-skil
 ### Other agents
 
 Codex, Gemini CLI, Copilot, Cursor and other agents that support Agent Skills can use a skill
-directly: copy its folder, for example `plugins/dev-workflow/skills/reviewable-commits`, into the
+directly: copy its folder, for example `skills/reviewable-commits`, into the
 agent's skills directory. See the agent's documentation for where that is.
 
 ## Develop
@@ -50,7 +50,7 @@ From the repo root:
 
 ```powershell
 claude plugin validate .
-claude --plugin-dir .\plugins\dev-workflow
+claude --plugin-dir .
 ```
 
 `--plugin-dir` loads a plugin for one session without installing it. Run `/reload-plugins` after

@@ -1,14 +1,14 @@
 {
   "name": "ricflams",
-  "description": "Generally useful agent skills, grouped into plugins",
+  "description": "Generally useful agent skills",
   "owner": {
     "name": "Richard Flamsholt"
   },
   "plugins": [
     {
-      "name": "dev-workflow",
-      "source": "./plugins/dev-workflow",
-      "description": "Development workflow skills: commits, reviews, handovers"
+      "name": "ricflams-skills",
+      "source": "./",
+      "description": "Generally useful agent skills"
     }
   ]
 }
