@@ -6,9 +6,10 @@ agent that reads `SKILL.md` files.
 
 ## Skills
 
-| Skill                | What it does                                                                         |
-|----------------------|--------------------------------------------------------------------------------------|
-| `reviewable-commits` | Splits work into functional commits, each reviewed and approved before it is committed |
+| Skill                 | What it does                                                                           |
+|-----------------------|----------------------------------------------------------------------------------------|
+| `csharp-coding-style` | Applies a personal C# and .NET style guide when writing, reviewing or refactoring code |
+| `reviewable-commits`  | Splits work into functional commits, each reviewed and approved before it is committed |
 
 All skills ship in one plugin, `ricflams-skills`. Plugin skills are namespaced: run one as
 `/ricflams-skills:reviewable-commits`, or let Claude load it when a request matches its description.
