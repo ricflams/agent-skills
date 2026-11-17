@@ -28,7 +28,7 @@ one at a time, and never commit anything the user has not seen and approved.
 Read the full diff (`git status`, `git diff`, untracked files) and propose an ordered list of
 chunks. For each one give:
 
-- a headline and a short list of what it contains;
+- its commit header (`<type>: <description>`, after the key) and a short list of what it contains;
 - a ballpark **T-shirt size** for the review effort: XS (a few lines), S (a small, focused change),
   M (a few files), L (many files or a substantial change), XL (a large part of the work). This is
   a rough guide, not a line count;
@@ -155,13 +155,17 @@ on.
 ## Commit message format
 
 ```
-<KEY>: [<Type>: ]<headline>
+[<KEY>: ]<type>[(<scope>)][!]: <description>
 
 - <point>
 - <point>
 
+[BREAKING CHANGE: <what breaks, and what to do instead>]
 Co-Authored-By: <model name> <noreply@anthropic.com>
 ```
+
+The format is [Conventional Commits 1.0](https://www.conventionalcommits.org/en/v1.0.0/), with one
+addition: the branch's Jira key in front, when there is one.
 
 - **KEY prefix:** if the skill argument gives a key, use it. Otherwise look at the branch name
   (`git branch --show-current`), ignoring a leading path such as `feature/` or `bugfix/`. If it starts
@@ -169,51 +173,63 @@ Co-Authored-By: <model name> <noreply@anthropic.com>
   is the key: `A11Y-12587-regex-search`, `feature/A11Y-12587-regex-search` and
   `a11y-12587-regex-search` all give `A11Y-12587: `. The id pattern is
   `^[A-Za-z][A-Za-z0-9]*-[0-9]+(-|$)`, matched case-insensitively. If the name doesn't start with one,
-  there is no prefix: the headline starts the message. Don't ask, and don't take an id from the
-  middle of the name.
+  there is no prefix: the type starts the message. Don't ask, and don't take an id from the
+  middle of the name. Tools that parse Conventional Commits strictly, such as commitlint's
+  `config-conventional`, expect the type first and need to be told about the prefix.
 - **One key for the whole branch:** every commit on the branch gets the same prefix, or none, even a
   commit that implements another issue.
-- **Type marker:** when a commit is entirely one specific kind of change, start the headline with
-  its type, capitalized, after the key: `A11Y-12611: Fix: Offer pdftitle with string operators again`.
-  The types are those of [Conventional Commits](https://www.conventionalcommits.org), which is the
-  intention behind them, but only the subset that names a specific kind of change:
-  - `Fix`: corrects existing behavior, not the behavior the branch is adding
-  - `Refactor`: restructures code, including renames, with no change in behavior
-  - `Style`: formatting and whitespace only
-  - `Docs`: documentation only
-  - `Test`: tests only
-  - `Chore`, `Build`, `CI`: housekeeping, build or pipeline only
-  - `Performance`: makes something faster with no other change in behavior (the convention's `perf`)
+- **Type:** every commit has exactly one, in lowercase, after the key:
+  `A11Y-12611: fix: offer pdftitle with string operators again`.
+  - `feat`: a new feature or behavior
+  - `fix`: a bug fix
+  - `refactor`: restructures code, including renames, with no change in behavior
+  - `style`: formatting and whitespace only
+  - `perf`: makes something faster with no other change in behavior
+  - `docs`: documentation only
+  - `test`: tests only
+  - `build`: the build system or dependencies
+  - `ci`: the CI configuration and pipelines
+  - `chore`: other housekeeping that touches neither the source nor the tests
+  - `revert`: reverts earlier commits, named in a `Refs:` footer with their hashes
 
-  There is no `Feat`: a commit without a marker is the branch's own work, which keeps the marker
-  meaningful. The marker says what kind of change the commit is, and so what to check, even when it
-  serves the feature: a preparatory refactor is still `Refactor`, and a commit of only the feature's
-  design docs is still `Docs`. Use one marker at most; a commit that needs two should be split.
-  `Refactor` and `Style` commits also start their body with the "Mechanical change only" bullet
-  below.
-- **Headline:** imperative, specific, and **72 characters at most for the whole first line**,
-  counting the key and the type marker. This is a hard limit: GitHub cuts a longer subject off with
-  "…" and moves the rest into the description, and does the same to a PR title made from the commit.
-  Count the length (for example `${#headline}` in Bash) rather than estimating it, and
-  shorten the wording or move detail into the body when it's over. The headline says what the commit
-  achieves, not which files it touches.
+  The type says what kind of change the commit is, and so what to check, even when it serves the
+  feature: a preparatory refactor is still `refactor`, and a commit of only the feature's design
+  docs is still `docs`. A commit that needs two types should be split. `refactor` and `style`
+  commits also start their body with the "Mechanical change only" bullet below.
+- **Scope:** optional, in parentheses after the type, for the part of the code the commit is about
+  when that helps the reader, for example `refactor(history): …`. Use the scopes the repo already
+  uses, and leave it out rather than invent one.
+- **Breaking change:** a `!` before the colon, `feat!: …`, and a `BREAKING CHANGE:` footer that says
+  what breaks and what to do instead, for a change to a public contract: an API, an option, a
+  message or event format, a stored format.
+- **Description:** imperative, specific, starting in lowercase (names and identifiers keep their
+  case: `fix: let PdfTextStep skip stored texts`), with no period at the end, and **72 characters at
+  most for the whole first line**, counting the key, the type and the scope. This is a hard limit:
+  GitHub cuts a longer first line off with "…" and moves the rest into the body, and does the same
+  to a PR title made from the commit. Count the length (for example `${#header}` in Bash) rather
+  than estimating it, and shorten the wording or move detail into the body when it's over. The
+  description says what the commit achieves, not which files it touches.
 - **Body:** a few itemized points, short and to the point: what changed and why. Not a narrative,
   and not a file list. A mechanical commit says so explicitly, in its first bullet, so that a
   reviewer knows how to read it before anything else: "Mechanical change only: no functional
   changes".
+- **Footers:** after the body, separated by an empty line, one per line as `Token: value`, git
+  trailers included: `BREAKING CHANGE:`, `Refs:`, then the co-author.
 - **Co-author trailer:** name the model that is actually writing the commit, for example
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never copy a model name from an earlier
   commit or from this file. If the environment gives an exact attribution line, use that line.
 
 ## Pull request title
 
-A PR's title carries the same key as the branch's commits: `<KEY>: <headline>`, for example
-`A11Y-12611: Add the PdfText rule`, never a title GitHub derives from the branch name, such as
-"A11y 12611 add pdftext rule". With no key, the headline stands alone.
+A PR's title is a commit header for the PR as a whole, with the same key as the branch's commits:
+`<KEY>: <type>: <description>`, for example `A11Y-12611: feat: add the PdfText rule`, never a title
+GitHub derives from the branch name, such as "A11y 12611 add pdftext rule". With no key, the type
+starts the title.
 
-- The headline says what the whole PR achieves, in the style of a commit headline. It has no type
-  marker, unless every commit in the PR has the same one.
-- The whole title, key included, is 72 characters at most, as for a commit headline. Count it.
+- The type is the one that describes the PR as a whole, which a squash merge would give its single
+  commit: usually the type of its main commit, `feat` for a feature branch even when it also has
+  `refactor` and `docs` commits.
+- The whole title, key included, is 72 characters at most, as for a commit's first line. Count it.
 - When opening a PR, always pass the title explicitly (`gh pr create --title "<KEY>: …"`): for a PR
   with several commits, GitHub otherwise derives it from the branch name.
 - If an existing PR's title doesn't follow this, propose the corrected title, and change it
