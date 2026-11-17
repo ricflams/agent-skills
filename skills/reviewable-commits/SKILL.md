@@ -53,8 +53,8 @@ can go anywhere, so place it where it reads best.
    so get them out of the way first when they are independent and not tied to one topic. A
    mechanical change that belongs to a topic goes with that topic's chunks instead: if chunks 4–6
    deal with topic X, a rename related to X sits alongside them, not first. Either way, the commit
-   message states that the commit is mechanical only, with no functional changes, for example a
-   final bullet `- Mechanical change only: no functional changes`.
+   message states that the commit is mechanical only, with no functional changes, as the first
+   bullet of its body: `- Mechanical change only: no functional changes`.
 2. **Housekeeping:** `.gitignore`, build and tooling settings.
 3. **Independent corrections:** fixes or doc corrections that would be right even without this work.
 4. **Preparatory refactors:** reshape the code the change needs, with no behavior change.
@@ -189,7 +189,8 @@ Co-Authored-By: <model name> <noreply@anthropic.com>
   meaningful. The marker says what kind of change the commit is, and so what to check, even when it
   serves the feature: a preparatory refactor is still `Refactor`, and a commit of only the feature's
   design docs is still `Docs`. Use one marker at most; a commit that needs two should be split.
-  `Refactor` and `Style` commits also end with the "Mechanical change only" bullet below.
+  `Refactor` and `Style` commits also start their body with the "Mechanical change only" bullet
+  below.
 - **Headline:** imperative, specific, and **72 characters at most for the whole first line**,
   counting the key and the type marker. This is a hard limit: GitHub cuts a longer subject off with
   "…" and moves the rest into the description, and does the same to a PR title made from the commit.
@@ -197,8 +198,9 @@ Co-Authored-By: <model name> <noreply@anthropic.com>
   shorten the wording or move detail into the body when it's over. The headline says what the commit
   achieves, not which files it touches.
 - **Body:** a few itemized points, short and to the point: what changed and why. Not a narrative,
-  and not a file list. A mechanical commit says so explicitly: "Mechanical change only: no
-  functional changes".
+  and not a file list. A mechanical commit says so explicitly, in its first bullet, so that a
+  reviewer knows how to read it before anything else: "Mechanical change only: no functional
+  changes".
 - **Co-author trailer:** name the model that is actually writing the commit, for example
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never copy a model name from an earlier
   commit or from this file. If the environment gives an exact attribution line, use that line.
