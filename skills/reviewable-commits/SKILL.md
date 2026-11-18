@@ -1,6 +1,6 @@
 ---
 name: reviewable-commits
-description: Split work into reviewable, functional commits and commit them one at a time, stopping after each staged chunk until the user has reviewed and approved it. Use whenever the user signals that the work is ready to be committed, for example "let's commit", "commit this", "ready to commit", "time to commit", "commit the changes", "make the commits", "split this into commits" or "prepare the commits for the PR". Also use it when the user asks for commit messages for pending changes. Load it before running any git add or git commit for the user's work.
+description: Split work into reviewable, functional commits and commit them one at a time, stopping after each staged chunk until the user has reviewed and approved it. Use whenever the user signals that the work is ready to be committed, for example "let's commit", "commit this", "ready to commit", "time to commit", "commit the changes", "make the commits", "split this into commits" or "prepare the commits for the PR". Also use it when the user asks for commit messages for pending changes. Load it before running any git add or git commit for the user's work, and before posting a PR comment or reply on the user's behalf.
 argument-hint: "[jira-key]"
 ---
 
@@ -234,6 +234,22 @@ starts the title.
   with several commits, GitHub otherwise derives it from the branch name.
 - If an existing PR's title doesn't follow this, propose the corrected title, and change it
   (`gh pr edit <number> --title …`) only after the user agrees, since it is visible to others.
+
+## Comments on the user's behalf
+
+A PR comment, review comment or reply that you post from the user's account starts with
+`Claude, on my behalf: `, so that its readers can see that Claude wrote it for the user. The account
+already shows who the user is, so the preamble doesn't name them. For a reply of more than a sentence
+or two, put the preamble on a line of its own.
+
+- It applies to comments and replies only. PR descriptions and commit messages keep their own
+  attribution lines instead.
+- Use the exact wording every time, so that the comments can be found by searching for it.
+- **The user approves every comment before it is posted**, as with a commit message. Show the exact
+  text, preamble included, and where it goes (the PR, and the file and line or the thread it answers),
+  then stop and end your turn. Post it only after the user's explicit approval of that text; apply
+  their edits and show it again. Asking you to address or answer a comment, or approving the fix it
+  led to, never approves a reply's text.
 
 ## Rules
 
