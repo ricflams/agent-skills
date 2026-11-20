@@ -209,6 +209,12 @@ addition: the branch's Jira key in front, when there is one.
   to a PR title made from the commit. Count the length (for example `${#header}` in Bash) rather
   than estimating it, and shorten the wording or move detail into the body when it's over. The
   description says what the commit achieves, not which files it touches.
+- **Purpose first:** the description leads with the commit's purpose: the need it meets, or the
+  problem it removes. Ask: "Would a reviewer know from this line alone why the change was made?" If
+  it only describes the new behavior ("now x happens", "x does y"), rewrite it around the reason or
+  the goal. When both the what and the why fit in 72 characters, give both ("do x, for y"). When
+  only one fits, keep the why and move the what into the body. Describe only the mechanics when the
+  commit has no reason beyond itself, as for a mechanical change.
 - **Body:** a few itemized points, short and to the point: what changed and why. Not a narrative,
   and not a file list. A mechanical commit says so explicitly, in its first bullet, so that a
   reviewer knows how to read it before anything else: "Mechanical change only: no functional
